@@ -1,0 +1,199 @@
+/* ═══════════════════════════════════════════════════
+   TIMELINE — TECH PREMIUM
+═══════════════════════════════════════════════════ */
+
+/* ── GRID LAYOUT ── */
+.tl-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+  gap: clamp(14px, 2.5vw, 24px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 0 clamp(60px, 8vw, 100px);
+}
+.tl-line {
+  display: none;
+}
+.tl-line::before {
+  display: none;
+}
+
+.tl-item {
+  position: relative;
+  z-index: 1;
+  padding: 0;
+}
+
+.tl-node {
+  display: none;
+}
+.tl-node-inner {
+  display: none;
+}
+.tl-item:hover .tl-node { box-shadow: none; }
+.tl-item:hover .tl-node-inner { background: transparent; }
+
+.tl-date {
+  position: static;
+  width: auto;
+  text-align: left;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-right: 0;
+  font-family: var(--f-mono); line-height: 1;
+}
+.tl-m { font-size: 0.75rem; color: var(--t-secondary); letter-spacing: 0.1em; margin-bottom: 2px; }
+.tl-d { font-size: 1.25rem; font-weight: 700; color: var(--t-primary); margin-bottom: 0; letter-spacing: -0.03em; }
+.tl-y { font-size: 0.7rem; color: var(--t-muted); letter-spacing: 0.05em; }
+
+.tl-card {
+  padding: clamp(16px, 3vw, 24px);
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.tl-title { font-size: clamp(1.05rem, 3vw, 1.25rem); font-weight: 600; color: var(--t-primary); letter-spacing: -0.01em; margin-bottom: 8px; }
+.tl-desc { font-size: 0.95rem; color: var(--t-secondary); line-height: 1.6; }
+
+.tl-meta {
+  margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--b-light);
+  font-family: var(--f-mono); font-size: 0.7rem; color: var(--t-muted); text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.tl-card-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 12px; gap: 12px; flex-wrap: wrap;
+}
+
+/* ── DATE PICKER (Modal) ── */
+.tl-date-field {
+  position: relative;
+}
+
+.tl-modal-content {
+  overflow: visible;
+}
+
+.tl-modal-content .modal-body {
+  overflow: visible;
+}
+
+.tl-date-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--f-mono);
+}
+
+.tl-date-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 230px;
+  z-index: 30;
+  background: var(--bg-card);
+  border: 1px solid var(--b-light);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-md);
+  padding: 10px;
+}
+
+.tl-date-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tl-date-popover-head span {
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  color: var(--t-primary);
+}
+
+.tl-date-popover-head .btn-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.tl-date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.tl-date-week-head span {
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  color: var(--t-muted);
+  padding: 4px 0;
+}
+
+.tl-date-day,
+.tl-date-empty {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+}
+
+.tl-date-empty {
+  background: transparent;
+}
+
+.tl-date-day {
+  border: 1px solid transparent;
+  background: var(--bg-main);
+  color: var(--t-secondary);
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.tl-date-day:hover {
+  border-color: var(--b-light);
+  color: var(--t-primary);
+}
+
+.tl-date-day.active {
+  background: var(--t-primary);
+  color: var(--bg-main);
+  border-color: var(--t-primary);
+}
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════════════════ */
+
+/* Medium screens */
+@media (max-width: 720px) {
+  .tl-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Mobile */
+@media (max-width: 540px) {
+  .tl-container { grid-template-columns: 1fr; }
+  .tl-date {
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .tl-m { font-size: 0.7rem; }
+  .tl-d { font-size: 1.2rem; }
+  .tl-y { font-size: 0.65rem; }
+  .tl-card { padding: 14px; }
+
+  .tl-date-popover {
+    min-width: 210px;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .tl-container { grid-template-columns: 1fr; }
+}

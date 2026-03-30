@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════════
+   WALL — TECH PREMIUM
+═══════════════════════════════════════════════════ */
+
+/* ── CONTROLS ── */
+.wall-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: clamp(20px, 4vw, 32px);
+  border-bottom: 1px solid var(--b-subtle);
+  margin-bottom: clamp(20px, 4vw, 32px);
+}
+.wc-status {
+  font-family: var(--f-mono);
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  color: var(--t-primary);
+}
+.wc-actions { display: flex; gap: 10px; align-items: center; }
+
+/* ── GRID LAYOUT ── */
+.wall-masonry {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: clamp(14px, 2.5vw, 24px);
+  padding-bottom: clamp(40px, 6vw, 80px);
+}
+
+/* ── CARD ── */
+.wall-card {
+  margin-bottom: 0;
+  display: flex; flex-direction: column;
+  padding: clamp(16px, 3vw, 24px);
+  min-height: 220px;
+  background: var(--bg-card); transition: all var(--dur-base) var(--ease-out);
+}
+.wall-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); border-color: var(--b-light); }
+
+.wall-card-content {
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+  color: var(--t-primary); line-height: 1.6;
+  letter-spacing: -0.01em; margin-bottom: clamp(16px, 3vw, 24px); font-weight: 500;
+  /* Allow long words to wrap on mobile */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.wall-card-footer {
+  margin-top: auto; display: flex; align-items: center; justify-content: space-between;
+  padding-top: 16px; border-top: 1px dashed var(--b-subtle);
+  gap: 12px;
+}
+
+.wall-meta { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.wm-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg-hover); border: 1px solid var(--b-light);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--f-mono); font-weight: 700; color: var(--t-secondary); font-size: 0.85rem;
+}
+.wm-info { display: flex; flex-direction: column; min-width: 0; }
+.wm-name {
+  font-size: 0.85rem; font-weight: 600; color: var(--t-primary); letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wm-time { font-family: var(--f-mono); font-size: 0.7rem; color: var(--t-muted); letter-spacing: 0.02em; }
+
+.wall-like {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; width: auto; flex-shrink: 0;
+  min-height: 36px;
+}
+.wall-like:hover, .wall-like.liked { color: var(--accent-3); background: rgba(255,0,128,0.1); border-color: rgba(255,0,128,0.4); }
+
+/* ── CUSTOM CHECKBOX ── */
+.checkbox-wrap {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  padding: 10px 16px; background: var(--bg-hover); border-radius: var(--r-md);
+  border: 1px dashed var(--b-light);
+  touch-action: manipulation;
+  min-height: 44px;
+}
+.checkbox-wrap input { display: none; }
+.cb-box {
+  width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--b-subtle);
+  background: var(--bg-main); transition: all var(--dur-fast) var(--ease-out);
+  position: relative; flex-shrink: 0;
+}
+.checkbox-wrap input:checked ~ .cb-box { background: var(--accent-1); border-color: var(--accent-1); }
+.checkbox-wrap input:checked ~ .cb-box::after {
+  content: ''; position: absolute; left: 6px; top: 2px; width: 4px; height: 10px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.cb-label { font-size: 0.85rem; color: var(--t-secondary); }
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════════════════ */
+
+/* Large tablet */
+@media (max-width: 1000px) {
+  .wall-masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Small tablet */
+@media (max-width: 640px) {
+  .wall-masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .wall-controls { flex-direction: column; align-items: stretch; }
+  .wc-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .wall-masonry { grid-template-columns: 1fr; }
+  .wc-actions { grid-template-columns: 1fr 1fr; }
+  .wall-card-content { font-size: 1rem; }
+}
