@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, Users, Calendar, MessageSquare, Menu, X } from 'lucide-react';
+import ausLogo from '../assets/auslogo.png';
 import './Navbar.css';
 
 const LINKS = [
@@ -35,7 +36,7 @@ export default function Navbar() {
         <div className="dock-inner">
           <Link to="/" className="dock-brand">
             <div className="dock-logo">
-              <img src="/brand-logo.svg" alt="AUS MCA logo" className="dock-logo-img" />
+              <img src={ausLogo} alt="AUS MCA logo" className="dock-logo-img" />
             </div>
             <div className="dock-brand-text">
               <span className="dock-brand-main">MCA '26</span>
