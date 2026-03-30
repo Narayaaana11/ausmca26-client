@@ -7,6 +7,7 @@ import ImageUpload from '../components/ImageUpload';
 import './Yearbook.css';
 
 const ROLL_NO_REGEX = /^24M11MC\d{3}$/i;
+const INSTAGRAM_LOGO_URL = 'https://images.unsplash.com/photo-1611262588024-d12430b98920?auto=format&fit=crop&w=128&q=80&fm=png';
 
 function AddMemberModal({ onClose, onCreated }) {
   const [photo, setPhoto] = useState(null);
@@ -170,7 +171,18 @@ function MemberCard({ member }) {
         </div>
       </div>
       <div className="yb-socials">
-        {member.socialLinks?.instagram && <a href={member.socialLinks.instagram} target="_blank" rel="noreferrer" className="sc-icon">IG</a>}
+        {member.socialLinks?.instagram && (
+          <a
+            href={member.socialLinks.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="sc-icon sc-icon-instagram"
+            aria-label="Instagram"
+            title="Instagram"
+          >
+            <img src={INSTAGRAM_LOGO_URL} alt="Instagram" className="sc-icon-img" loading="lazy" />
+          </a>
+        )}
         {member.socialLinks?.linkedin && <a href={member.socialLinks.linkedin} target="_blank" rel="noreferrer" className="sc-icon">IN</a>}
         {member.socialLinks?.twitter && <a href={member.socialLinks.twitter} target="_blank" rel="noreferrer" className="sc-icon">X</a>}
       </div>

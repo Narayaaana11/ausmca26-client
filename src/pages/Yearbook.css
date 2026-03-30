@@ -72,6 +72,16 @@
   transition: all var(--dur-fast) var(--ease-out); background: var(--bg-main);
   min-height: 28px; display: flex; align-items: center;
 }
+.sc-icon-instagram {
+  padding: 4px 8px;
+}
+.sc-icon-img {
+  width: 14px;
+  height: 14px;
+  display: block;
+  border-radius: 3px;
+  object-fit: cover;
+}
 .sc-icon:hover { color: var(--t-primary); border-color: var(--t-primary); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
 
 /* ── SKELETON ── */
