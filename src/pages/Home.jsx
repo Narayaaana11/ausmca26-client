@@ -164,8 +164,12 @@ export default function Home() {
     const pollId = setInterval(refreshLiveStats, 30000);
 
     const socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     socket.on('live-stats:update', (payload) => {
