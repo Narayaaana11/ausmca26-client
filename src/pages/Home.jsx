@@ -3,15 +3,26 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Image as ImageIcon, Users, Calendar, MessageSquare, Code, Terminal, ChevronRight } from 'lucide-react';
 import { io } from 'socket.io-client';
-import { API_BASE_URL } from '../services/api';
+import { API_BASE_URL, getLiveStats } from '../services/api';
 import './Home.css';
 
 const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL || API_BASE_URL).replace(/\/api\/?$/, '');
 const DEFAULT_LIVE_STATS = {
-  activeNodes: '68+',
-  memoryBlocks: '500+',
-  uptime: '24/7',
-  batchSpirit: '100%',
+  activeNodes: '0+',
+  memoryBlocks: '0+',
+  uptime: '0m',
+  batchSpirit: '0%',
+};
+
+const normalizeLiveStats = (payload) => {
+  if (!payload?.display) return null;
+
+  return {
+    activeNodes: payload.display.activeNodes || '0+',
+    memoryBlocks: payload.display.memoryBlocks || '0+',
+    uptime: payload.display.uptime || '0m',
+    batchSpirit: payload.display.batchSpirit || '0%',
+  };
 };
 
 /* ──────────────────────────────────────────────────────
@@ -135,23 +146,38 @@ export default function Home() {
   const [liveStats, setLiveStats] = useState(DEFAULT_LIVE_STATS);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const refreshLiveStats = async () => {
+      try {
+        const response = await getLiveStats();
+        const next = normalizeLiveStats(response?.data?.data);
+        if (isMounted && next) {
+          setLiveStats(next);
+        }
+      } catch (error) {
+        // Keep last known stats if HTTP refresh fails.
+      }
+    };
+
+    refreshLiveStats();
+    const pollId = setInterval(refreshLiveStats, 30000);
+
     const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       withCredentials: true,
     });
 
     socket.on('live-stats:update', (payload) => {
-      if (!payload?.display) return;
-
-      setLiveStats({
-        activeNodes: payload.display.activeNodes || DEFAULT_LIVE_STATS.activeNodes,
-        memoryBlocks: payload.display.memoryBlocks || DEFAULT_LIVE_STATS.memoryBlocks,
-        uptime: payload.display.uptime || DEFAULT_LIVE_STATS.uptime,
-        batchSpirit: payload.display.batchSpirit || DEFAULT_LIVE_STATS.batchSpirit,
-      });
+      const next = normalizeLiveStats(payload);
+      if (next) {
+        setLiveStats(next);
+      }
     });
 
     return () => {
+      isMounted = false;
+      clearInterval(pollId);
       socket.disconnect();
     };
   }, []);

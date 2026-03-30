@@ -74,5 +74,6 @@ export const uploadImage = (formData, config = {}) => API.post('/images', formDa
 });
 export const getImages = (params) => API.get('/images', { params });
 export const deleteImage = (id) => API.delete(`/images/${id}`);
+export const getLiveStats = () => API.get('/live-stats');
 
 export default API;
