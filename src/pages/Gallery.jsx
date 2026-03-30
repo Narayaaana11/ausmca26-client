@@ -15,7 +15,7 @@ function UploadModal({ onClose, onSuccess }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ title:'', description:'', year:'2025', event:'General', tags:'' });
+  const [form, setForm] = useState({ year:'2025', event:'General' });
 
   const submitWithRetry = async (payload, retries = 2) => {
     let attempt = 0;
@@ -81,8 +81,6 @@ function UploadModal({ onClose, onSuccess }) {
             progress={uploadProgress}
             error={uploadError}
           />
-          <input className="input-tech" placeholder="Title" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} />
-          <textarea className="input-tech" rows={2} placeholder="Description..." value={form.description} onChange={e=>setForm({...form,description:e.target.value})} />
           <div className="split-form">
             <select className="input-tech" value={form.year} onChange={e=>setForm({...form,year:e.target.value})}>
               {YEARS.slice(1).map(y=><option key={y}>{y}</option>)}
@@ -148,8 +146,6 @@ function MemCard({ m, onLike, onPreview }) {
           <span className="badge">{m.event}</span>
           <span className="badge">{m.year}</span>
         </div>
-        <h3 className="cg-title">{m.title}</h3>
-        <p className="cg-desc">{m.description || 'No description provided.'}</p>
       </div>
     </motion.div>
   );
