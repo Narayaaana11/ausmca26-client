@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Search, Camera, Plus, X } from 'lucide-react';
+import { Users, Search, Plus, X, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createMember, getAllMembers, resolveImageUrl } from '../services/api';
 import ImageUpload from '../components/ImageUpload';
 import './Yearbook.css';
 
 const ROLL_NO_REGEX = /^24M11MC\d{3}$/i;
-const INSTAGRAM_LOGO_URL = 'https://images.unsplash.com/photo-1611262588024-d12430b98920?auto=format&fit=crop&w=128&q=80&fm=png';
 
 function AddMemberModal({ onClose, onCreated }) {
   const [photo, setPhoto] = useState(null);
@@ -145,6 +144,9 @@ function MemberCard({ member }) {
     return name.split(' ').map(n=>n[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  const sectionLabel = member.branch || 'Section not set';
+  const mobileLabel = member.bio || 'Mobile not shared';
+
   return (
     <motion.div
       layout
@@ -154,22 +156,34 @@ function MemberCard({ member }) {
       transition={{ duration: 0.4 }}
       className="tech-card yb-card"
     >
-      <div className="yb-avatar-wrapper">
-        {member.profilePicture ? (
-          <img src={resolveImageUrl(member.profilePicture)} alt={member.name} className="yb-avatar" loading="lazy" />
-        ) : (
-          <div className="yb-avatar-placeholder">{getAvatarInitials(member.name)}</div>
-        )}
-      </div>
-      <div className="yb-info">
-        <h3 className="yb-name">{member.name}</h3>
-        <p className="yb-tag t-muted">{member.rollNo || member.email}</p>
-        <div className="yb-quote-box">
-          <p className="yb-quote">
-            {member.branch || 'Section not set'} {member.bio ? `• ${member.bio}` : ''}
-          </p>
+      <div className="yb-card-top">
+        <div className="yb-avatar-wrapper">
+          {member.profilePicture ? (
+            <img src={resolveImageUrl(member.profilePicture)} alt={member.name} className="yb-avatar" loading="lazy" />
+          ) : (
+            <div className="yb-avatar-placeholder">{getAvatarInitials(member.name)}</div>
+          )}
+        </div>
+        <div className="yb-id-block">
+          <p className="yb-tag">{member.rollNo || member.email}</p>
+          <span className="badge yb-section-chip">{sectionLabel}</span>
         </div>
       </div>
+
+      <div className="yb-info">
+        <h3 className="yb-name">{member.name}</h3>
+        <div className="yb-meta-grid">
+          <div className="yb-meta-item">
+            <span className="yb-meta-label">Section</span>
+            <span className="yb-meta-value">{sectionLabel}</span>
+          </div>
+          <div className="yb-meta-item">
+            <span className="yb-meta-label">Mobile</span>
+            <span className="yb-meta-value">{mobileLabel}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="yb-socials">
         {member.socialLinks?.instagram && (
           <a
@@ -180,10 +194,11 @@ function MemberCard({ member }) {
             aria-label="Instagram"
             title="Instagram"
           >
-            <img src={INSTAGRAM_LOGO_URL} alt="Instagram" className="sc-icon-img" loading="lazy" />
+            <Camera size={14} />
+            <span>Instagram</span>
           </a>
         )}
-        {member.socialLinks?.linkedin && <a href={member.socialLinks.linkedin} target="_blank" rel="noreferrer" className="sc-icon">IN</a>}
+        {member.socialLinks?.linkedin && <a href={member.socialLinks.linkedin} target="_blank" rel="noreferrer" className="sc-icon">LinkedIn</a>}
         {member.socialLinks?.twitter && <a href={member.socialLinks.twitter} target="_blank" rel="noreferrer" className="sc-icon">X</a>}
       </div>
     </motion.div>
@@ -194,6 +209,7 @@ export default function Yearbook() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('All');
   const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
@@ -207,9 +223,15 @@ export default function Yearbook() {
   }, []);
 
   const filtered = members.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.email.toLowerCase().includes(search.toLowerCase()) ||
-    (m.rollNo || '').toLowerCase().includes(search.toLowerCase())
+    (
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.email.toLowerCase().includes(search.toLowerCase()) ||
+      (m.rollNo || '').toLowerCase().includes(search.toLowerCase())
+    ) &&
+    (
+      sectionFilter === 'All' ||
+      (m.branch || '').toLowerCase().includes(`section ${sectionFilter}`.toLowerCase())
+    )
   );
 
   return (
@@ -220,17 +242,31 @@ export default function Yearbook() {
       </div>
 
       <div className="contain">
-        <div className="filters-strip">
-          <div className="fs-search">
-            <Search size={16} />
-            <input className="input-tech" placeholder="Search by name or ID..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <div className="yb-controls tech-card">
+          <div className="yb-controls-top">
+            <div className="fs-search yb-search">
+              <Search size={16} />
+              <input className="input-tech" placeholder="Search by name or ID..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            </div>
+            <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+              <Plus size={16} /> Add Member
+            </button>
+            <div className="yb-count badge">
+              <Users size={14} style={{ marginRight: 6 }} />
+              {filtered.length} Nodes Online
+            </div>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-            <Plus size={16} /> Add
-          </button>
-          <div className="yb-count badge">
-            <Users size={14} style={{ marginRight: 6 }} />
-            {filtered.length} Nodes Online
+
+          <div className="yb-section-pills">
+            {['All', 'A', 'B', 'C', 'F'].map((section) => (
+              <button
+                key={section}
+                className={`badge yb-pill ${sectionFilter === section ? 'active' : ''}`}
+                onClick={() => setSectionFilter(section)}
+              >
+                Section {section}
+              </button>
+            ))}
           </div>
         </div>
 
