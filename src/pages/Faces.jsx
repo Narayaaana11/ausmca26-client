@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine } from 'lucide-react';
+import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine, Download } from 'lucide-react';
 import { getImages, resolveImageUrl } from '../services/api';
 import './Faces.css';
 
@@ -447,9 +447,21 @@ export default function Faces() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
             >
-              <button className="btn-icon btn-ghost faces-preview-close" onClick={() => setSelectedImage(null)}>
-                <X size={18} />
-              </button>
+              <div className="faces-preview-controls">
+                <a
+                  className="btn-icon faces-preview-btn"
+                  href={selectedImage.imageUrl}
+                  download
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Download image"
+                >
+                  <Download size={18} />
+                </a>
+                <button className="btn-icon faces-preview-btn" onClick={() => setSelectedImage(null)} aria-label="Close preview">
+                  <X size={18} />
+                </button>
+              </div>
               <img src={selectedImage.imageUrl} alt={selectedImage.title} className="faces-preview-image" />
             </motion.div>
           </div>

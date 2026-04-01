@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, X, Search, Plus, Camera } from 'lucide-react';
+import { Heart, MessageCircle, X, Search, Plus, Camera, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMemories, createMemory, likeMemory, resolveImageUrl } from '../services/api';
 import ImageUpload from '../components/ImageUpload';
@@ -101,6 +101,8 @@ function UploadModal({ onClose, onSuccess }) {
 function PreviewModal({ memory, onClose }) {
   if (!memory) return null;
 
+  const imageUrl = resolveImageUrl(memory.imageUrl);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <motion.div
@@ -110,11 +112,24 @@ function PreviewModal({ memory, onClose }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
       >
-        <button className="btn-icon btn-ghost gallery-preview-close" onClick={onClose}>
-          <X size={18} />
-        </button>
+        <div className="gallery-preview-controls">
+          <a
+            className="btn-icon gallery-preview-btn"
+            href={imageUrl}
+            download
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Download image"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Download size={18} />
+          </a>
+          <button className="btn-icon gallery-preview-btn" onClick={onClose} aria-label="Close preview">
+            <X size={18} />
+          </button>
+        </div>
         <img
-          src={resolveImageUrl(memory.imageUrl)}
+          src={imageUrl}
           alt={memory.title || 'Preview image'}
           className="gallery-preview-image"
         />

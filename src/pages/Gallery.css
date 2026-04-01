@@ -126,6 +126,47 @@
   gap: 12px;
 }
 
+.gallery-preview-modal {
+  width: min(1140px, calc(100vw - 24px));
+  max-height: min(92vh, 980px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-preview-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+}
+
+.gallery-preview-btn {
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.gallery-preview-btn:hover {
+  background: rgba(10, 10, 10, 0.96);
+  border-color: rgba(255, 255, 255, 0.48);
+}
+
+.gallery-preview-image {
+  width: auto;
+  max-width: 100%;
+  max-height: min(90vh, 940px);
+  object-fit: contain;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--b-subtle);
+  background: rgba(0, 0, 0, 0.72);
+}
+
 /* ── TOUCH: always show overlays on touch devices ── */
 @media (hover: none) {
   .cg-overlay { opacity: 1; }
