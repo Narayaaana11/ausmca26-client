@@ -129,8 +129,16 @@
 .gallery-preview-modal {
   width: min(1140px, calc(100vw - 24px));
   max-height: min(92vh, 980px);
-  position: relative;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-preview-stage {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }

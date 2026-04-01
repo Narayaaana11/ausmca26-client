@@ -447,22 +447,24 @@ export default function Faces() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
             >
-              <div className="faces-preview-controls">
-                <a
-                  className="btn-icon faces-preview-btn"
-                  href={selectedImage.imageUrl}
-                  download
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Download image"
-                >
-                  <Download size={18} />
-                </a>
-                <button className="btn-icon faces-preview-btn" onClick={() => setSelectedImage(null)} aria-label="Close preview">
-                  <X size={18} />
-                </button>
+              <div className="faces-preview-stage">
+                <div className="faces-preview-controls">
+                  <a
+                    className="btn-icon faces-preview-btn"
+                    href={selectedImage.imageUrl}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Download image"
+                  >
+                    <Download size={18} />
+                  </a>
+                  <button className="btn-icon faces-preview-btn" onClick={() => setSelectedImage(null)} aria-label="Close preview">
+                    <X size={18} />
+                  </button>
+                </div>
+                <img src={selectedImage.imageUrl} alt={selectedImage.title} className="faces-preview-image" />
               </div>
-              <img src={selectedImage.imageUrl} alt={selectedImage.title} className="faces-preview-image" />
             </motion.div>
           </div>
         ) : null}

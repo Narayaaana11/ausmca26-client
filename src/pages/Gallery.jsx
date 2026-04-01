@@ -112,27 +112,29 @@ function PreviewModal({ memory, onClose }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
       >
-        <div className="gallery-preview-controls">
-          <a
-            className="btn-icon gallery-preview-btn"
-            href={imageUrl}
-            download
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Download image"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Download size={18} />
-          </a>
-          <button className="btn-icon gallery-preview-btn" onClick={onClose} aria-label="Close preview">
-            <X size={18} />
-          </button>
+        <div className="gallery-preview-stage">
+          <div className="gallery-preview-controls">
+            <a
+              className="btn-icon gallery-preview-btn"
+              href={imageUrl}
+              download
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Download image"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Download size={18} />
+            </a>
+            <button className="btn-icon gallery-preview-btn" onClick={onClose} aria-label="Close preview">
+              <X size={18} />
+            </button>
+          </div>
+          <img
+            src={imageUrl}
+            alt={memory.title || 'Preview image'}
+            className="gallery-preview-image"
+          />
         </div>
-        <img
-          src={imageUrl}
-          alt={memory.title || 'Preview image'}
-          className="gallery-preview-image"
-        />
       </motion.div>
     </div>
   );

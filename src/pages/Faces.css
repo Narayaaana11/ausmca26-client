@@ -152,8 +152,16 @@
 .faces-preview {
   width: min(1080px, calc(100vw - 24px));
   max-height: min(90vh, 960px);
-  position: relative;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.faces-preview-stage {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
