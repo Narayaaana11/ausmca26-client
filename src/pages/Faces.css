@@ -123,6 +123,25 @@
   min-width: 0;
 }
 
+.faces-person-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.faces-person-actions .input-tech {
+  flex: 1;
+  min-width: 160px;
+}
+
+.faces-image-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .faces-image-card {
   border: 1px solid var(--b-subtle);
   background: var(--bg-card);
@@ -147,6 +166,17 @@
   color: var(--t-secondary);
   font-size: 0.78rem;
   text-transform: capitalize;
+}
+
+.faces-cover-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.faces-cover-btn.active {
+  border-color: rgba(255, 255, 255, 0.32);
+  color: var(--t-primary);
 }
 
 .faces-preview {
@@ -213,6 +243,10 @@
   }
 
   .faces-name-edit .btn {
+    width: 100%;
+  }
+
+  .faces-person-actions .btn {
     width: 100%;
   }
 }

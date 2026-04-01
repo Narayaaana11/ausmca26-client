@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Users, Calendar, MessageSquare, Menu, X, ScanFace } from 'lucide-react';
+import { Image as ImageIcon, Users, Calendar, MessageSquare, Menu, X, ScanFace, Search } from 'lucide-react';
+import GlobalSearchModal from './GlobalSearchModal';
 import './Navbar.css';
 
 const LINKS = [
@@ -16,6 +17,7 @@ export default function Navbar() {
   const loc = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -24,6 +26,23 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => setMobileOpen(false), [loc.pathname]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      const isOpenShortcut = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';
+      const isCloseShortcut = event.key === 'Escape';
+      if (isOpenShortcut) {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+      if (isCloseShortcut) {
+        setSearchOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   return (
     <>
@@ -62,13 +81,16 @@ export default function Navbar() {
           </div>
 
           <div className="dock-right">
+            <button className="dock-search-btn" onClick={() => setSearchOpen(true)} type="button" aria-label="Open global search">
+              <Search size={14} /> Search
+            </button>
             <span className="dock-credit">Developed by IndentDev</span>
             <div className="badge badge-magic">
               <div className="status-dot pulse" /> Live
             </div>
           </div>
 
-          <button className="dock-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="dock-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} type="button" aria-label="Open mobile menu">
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
@@ -96,6 +118,9 @@ export default function Navbar() {
               </div>
               <div className="mobile-links">
                 <div className="mob-credit">Developed by IndentDev</div>
+                <button className="mob-link mob-search-trigger" onClick={() => { setSearchOpen(true); setMobileOpen(false); }} type="button">
+                  <Search size={18} /> Search
+                </button>
                 <Link to="/" className={`mob-link ${loc.pathname === '/' ? 'active' : ''}`}>
                   Home
                 </Link>
@@ -109,6 +134,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

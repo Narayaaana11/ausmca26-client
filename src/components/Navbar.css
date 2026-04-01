@@ -91,6 +91,28 @@
   justify-self: end;
 }
 
+.dock-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--b-light);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--t-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  min-height: 32px;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.dock-search-btn:hover,
+.dock-search-btn:focus-visible {
+  color: var(--t-primary);
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .dock-credit {
   font-size: 0.7rem;
   color: var(--t-secondary);
@@ -167,6 +189,10 @@
 }
 .mob-link:hover { background: var(--b-subtle); color: var(--t-primary); }
 .mob-link.active { background: var(--bg-hover); border: 1px solid var(--b-light); color: var(--t-primary); }
+
+.mob-search-trigger {
+  width: 100%;
+}
 
 /* ═══════════════════════════════════════════════════
    RESPONSIVE BREAKPOINTS

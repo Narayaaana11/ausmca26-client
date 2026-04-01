@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine } from 'lucide-react';
+import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine, UserX, GitMerge, ImageUp } from 'lucide-react';
 import Lightbox from 'yet-another-react-lightbox';
 import DownloadPlugin from 'yet-another-react-lightbox/plugins/download';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-import { getFacePeople, getImages, resolveImageUrl, updateFacePerson, upsertImageFaces } from '../services/api';
+import toast from 'react-hot-toast';
+import { getFacePeople, getImages, hideFacePerson, mergeFacePeople, resolveImageUrl, updateFacePerson, upsertImageFaces } from '../services/api';
 import './Faces.css';
 
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js-models@0.1.4/weights';
@@ -102,13 +103,15 @@ const mapPeopleToClusters = (people = []) => {
       category: image.category || 'general',
       uploadedAt: image.uploadedAt || '',
     }));
+    const coverImage = normalizedImages.find((image) => image.id === person.coverImageId);
 
     return {
       id: person.personId,
       personId: person.personId,
       clusterKey: person.personId,
       displayName: person.displayName || `Person ${index + 1}`,
-      coverFace: resolveImageUrl(normalizedImages[0]?.thumbUrl || normalizedImages[0]?.imageUrl || ''),
+      coverFace: resolveImageUrl(coverImage?.thumbUrl || normalizedImages[0]?.thumbUrl || normalizedImages[0]?.imageUrl || ''),
+      coverImageId: person.coverImageId || normalizedImages[0]?.id || '',
       facesFound: Number(person.faceCount || normalizedImages.length),
       images: normalizedImages,
     };
@@ -176,6 +179,15 @@ export default function Faces() {
   const [selectedCluster, setSelectedCluster] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
   const [nameDraft, setNameDraft] = useState('');
+  const [mergeTargetId, setMergeTargetId] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
+
+  const refreshCloudPeople = useCallback(async () => {
+    const peopleRes = await getFacePeople();
+    const backendClusters = mapPeopleToClusters(peopleRes.data.people || []);
+    setClusters(backendClusters);
+    return backendClusters;
+  }, []);
 
   const runFaceScan = useCallback(async (forceRescan = false) => {
     let cancelled = false;
@@ -189,8 +201,7 @@ export default function Faces() {
 
       try {
         if (!forceRescan) {
-          const peopleRes = await getFacePeople();
-          const backendClusters = mapPeopleToClusters(peopleRes.data.people || []);
+          const backendClusters = await refreshCloudPeople();
           if (backendClusters.length) {
             setClusters(backendClusters);
             setScanMeta({ cached: 0, rescanned: 0 });
@@ -308,8 +319,7 @@ export default function Faces() {
         const normalizedClusters = clusterFaces(faceRecords);
 
         try {
-          const peopleRes = await getFacePeople();
-          const backendClusters = mapPeopleToClusters(peopleRes.data.people || []);
+          const backendClusters = await refreshCloudPeople();
           if (backendClusters.length) {
             setClusters(backendClusters);
           } else {
@@ -339,7 +349,7 @@ export default function Faces() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshCloudPeople]);
 
   useEffect(() => {
     let cleanup = () => {};
@@ -373,8 +383,11 @@ export default function Faces() {
     if (selectedCluster.personId) {
       try {
         await updateFacePerson(selectedCluster.personId, { displayName: cleaned || selectedCluster.displayName });
+        await refreshCloudPeople();
+        toast.success('Person name updated');
       } catch {
         // Keep local fallback name state if backend update fails.
+        toast.error('Cloud update failed. Kept local name only.');
       }
     }
 
@@ -388,6 +401,53 @@ export default function Faces() {
     setLoading(true);
     setStatusText('Running full rescan...');
     await runFaceScan(true);
+  };
+
+  const executePersonAction = async (action) => {
+    if (!selectedCluster?.personId) {
+      toast.error('This action is only available for cloud-indexed people.');
+      return;
+    }
+
+    setActionBusy(true);
+    try {
+      await action();
+      const fresh = await refreshCloudPeople();
+      const next = fresh.find((cluster) => cluster.personId === selectedCluster.personId) || null;
+      setSelectedCluster(next);
+    } catch {
+      toast.error('Action failed. Please try again.');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleMerge = async () => {
+    if (!mergeTargetId) {
+      toast.error('Select a target person first.');
+      return;
+    }
+
+    await executePersonAction(async () => {
+      await mergeFacePeople(selectedCluster.personId, mergeTargetId);
+      toast.success('People merged successfully.');
+      setSelectedCluster(null);
+    });
+  };
+
+  const handleHide = async () => {
+    await executePersonAction(async () => {
+      await hideFacePerson(selectedCluster.personId);
+      toast.success('Person hidden from Faces.');
+      setSelectedCluster(null);
+    });
+  };
+
+  const handleSetCover = async (imageId) => {
+    await executePersonAction(async () => {
+      await updateFacePerson(selectedCluster.personId, { coverImageId: imageId });
+      toast.success('Cover photo updated.');
+    });
   };
 
   return (
@@ -439,6 +499,7 @@ export default function Faces() {
                 onClick={() => {
                   setSelectedCluster(cluster);
                   setNameDraft(cluster.displayName);
+                  setMergeTargetId('');
                 }}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -488,18 +549,54 @@ export default function Faces() {
                   placeholder="Name this person"
                   aria-label="Person name"
                 />
-                <button className="btn btn-primary" onClick={applyPersonName} aria-label="Save person name">Save Name</button>
+                <button className="btn btn-primary" onClick={applyPersonName} aria-label="Save person name" disabled={actionBusy}>Save Name</button>
+              </div>
+
+              <div className="faces-person-actions" aria-label="Person actions">
+                <select
+                  className="input-tech"
+                  value={mergeTargetId}
+                  onChange={(event) => setMergeTargetId(event.target.value)}
+                  aria-label="Merge this person into"
+                  disabled={actionBusy}
+                >
+                  <option value="">Merge into...</option>
+                  {decoratedClusters
+                    .filter((item) => item.personId && item.personId !== selectedCluster.personId)
+                    .map((item) => (
+                      <option key={item.personId} value={item.personId}>{item.displayName}</option>
+                    ))}
+                </select>
+                <button className="btn btn-ghost" onClick={handleMerge} type="button" disabled={actionBusy || !mergeTargetId} aria-label="Merge person">
+                  <GitMerge size={14} /> Merge
+                </button>
+                <button className="btn btn-ghost" onClick={handleHide} type="button" disabled={actionBusy} aria-label="Hide person">
+                  <UserX size={14} /> Hide
+                </button>
               </div>
 
               <div className="faces-modal-grid">
                 {selectedCluster.images.map((image, index) => (
-                  <button key={image.id} className="faces-image-card" onClick={() => setSelectedImageIndex(index)} type="button">
-                    <img src={image.thumbUrl} alt={image.title} loading="lazy" />
-                    <div className="faces-image-meta">
-                      <ImageIcon size={14} />
-                      <span>{image.category}</span>
-                    </div>
-                  </button>
+                  <div key={image.id} className="faces-image-card-wrap">
+                    <button className="faces-image-card" onClick={() => setSelectedImageIndex(index)} type="button" aria-label={`Open ${image.title}`}>
+                      <img src={image.thumbUrl} alt={image.title} loading="lazy" />
+                      <div className="faces-image-meta">
+                        <ImageIcon size={14} />
+                        <span>{image.category}</span>
+                      </div>
+                    </button>
+                    {selectedCluster.personId ? (
+                      <button
+                        className={`btn btn-ghost faces-cover-btn ${selectedCluster.coverImageId === image.id ? 'active' : ''}`}
+                        onClick={() => handleSetCover(image.id)}
+                        type="button"
+                        disabled={actionBusy}
+                        aria-label={`Set ${image.title} as cover image`}
+                      >
+                        <ImageUp size={14} /> {selectedCluster.coverImageId === image.id ? 'Cover' : 'Set Cover'}
+                      </button>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             </motion.div>

@@ -1,0 +1,115 @@
+.search-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(16px, 4vw, 48px) 12px;
+}
+
+.search-modal {
+  width: min(820px, 100%);
+  max-height: min(84vh, 760px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-2xl);
+  border: 1px solid var(--b-light);
+  background: linear-gradient(165deg, rgba(16, 16, 16, 0.98), rgba(4, 4, 4, 0.96));
+  box-shadow: var(--sh-xl);
+  overflow: hidden;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--b-subtle);
+}
+
+.search-input-wrap svg {
+  color: var(--t-secondary);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--t-primary);
+  font-size: 0.98rem;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-result-wrap {
+  padding: 12px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-group h4 {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  color: var(--t-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.search-result-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--b-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--r-lg);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.search-result-item:hover,
+.search-result-item:focus-visible {
+  border-color: var(--b-light);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.search-result-main {
+  color: var(--t-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.search-result-sub {
+  color: var(--t-secondary);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.search-empty {
+  color: var(--t-secondary);
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.search-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-top: 1px solid var(--b-subtle);
+  color: var(--t-secondary);
+  font-size: 0.74rem;
+}
