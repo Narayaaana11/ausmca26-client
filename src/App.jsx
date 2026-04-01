@@ -1,12 +1,14 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Gallery from './pages/Gallery';
-import Yearbook from './pages/Yearbook';
-import Timeline from './pages/Timeline';
-import Wall from './pages/Wall';
-import Faces from './pages/Faces';
+
+const Home = lazy(() => import('./pages/Home'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Yearbook = lazy(() => import('./pages/Yearbook'));
+const Timeline = lazy(() => import('./pages/Timeline'));
+const Wall = lazy(() => import('./pages/Wall'));
+const Faces = lazy(() => import('./pages/Faces'));
 
 function App() {
   return (
@@ -22,15 +24,17 @@ function App() {
 
         <Navbar />
 
-        <Routes>
-          <Route path="/"         element={<Home />} />
-          <Route path="/gallery"  element={<Gallery />} />
-          <Route path="/yearbook" element={<Yearbook />} />
-          <Route path="/timeline" element={<Timeline />} />
-          <Route path="/wall"     element={<Wall />} />
-          <Route path="/faces"    element={<Faces />} />
-          <Route path="*"         element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<div className="loading-container"><div className="loader-spinner" /></div>}>
+          <Routes>
+            <Route path="/"         element={<Home />} />
+            <Route path="/gallery"  element={<Gallery />} />
+            <Route path="/yearbook" element={<Yearbook />} />
+            <Route path="/timeline" element={<Timeline />} />
+            <Route path="/wall"     element={<Wall />} />
+            <Route path="/faces"    element={<Faces />} />
+            <Route path="*"         element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
 
         <Toaster
           position="bottom-center"

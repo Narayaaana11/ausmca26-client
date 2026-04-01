@@ -4,7 +4,7 @@ import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine } fr
 import Lightbox from 'yet-another-react-lightbox';
 import DownloadPlugin from 'yet-another-react-lightbox/plugins/download';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-import { getImages, resolveImageUrl } from '../services/api';
+import { getFacePeople, getImages, resolveImageUrl, updateFacePerson, upsertImageFaces } from '../services/api';
 import './Faces.css';
 
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js-models@0.1.4/weights';
@@ -92,6 +92,29 @@ const buildClusterKey = (images, facesFound) => {
   return `${keySeed}::${facesFound}`;
 };
 
+const mapPeopleToClusters = (people = []) => {
+  return people.map((person, index) => {
+    const normalizedImages = (person.images || []).map((image) => ({
+      id: image.id,
+      imageUrl: resolveImageUrl(image.imageUrl),
+      thumbUrl: resolveImageUrl(image.thumbUrl || image.imageUrl),
+      title: image.title || `Image ${index + 1}`,
+      category: image.category || 'general',
+      uploadedAt: image.uploadedAt || '',
+    }));
+
+    return {
+      id: person.personId,
+      personId: person.personId,
+      clusterKey: person.personId,
+      displayName: person.displayName || `Person ${index + 1}`,
+      coverFace: resolveImageUrl(normalizedImages[0]?.thumbUrl || normalizedImages[0]?.imageUrl || ''),
+      facesFound: Number(person.faceCount || normalizedImages.length),
+      images: normalizedImages,
+    };
+  });
+};
+
 const clusterFaces = (faceRecords) => {
   const workingClusters = [];
 
@@ -165,6 +188,18 @@ export default function Faces() {
       setStatusText('Loading AI face models...');
 
       try {
+        if (!forceRescan) {
+          const peopleRes = await getFacePeople();
+          const backendClusters = mapPeopleToClusters(peopleRes.data.people || []);
+          if (backendClusters.length) {
+            setClusters(backendClusters);
+            setScanMeta({ cached: 0, rescanned: 0 });
+            setStatusText('Loaded people from cloud face index.');
+            setLoading(false);
+            return;
+          }
+        }
+
         const faceapi = await import('face-api.js');
 
         await Promise.all([
@@ -229,8 +264,19 @@ export default function Faces() {
 
             detections = rawDetections.map((detectedFace) => ({
               descriptor: Array.from(detectedFace.descriptor),
+              box: {
+                x: detectedFace.detection.box.x,
+                y: detectedFace.detection.box.y,
+                width: detectedFace.detection.box.width,
+                height: detectedFace.detection.box.height,
+              },
+              confidence: detectedFace.detection.score,
               previewUrl: createFacePreview(imageElement, detectedFace.detection.box),
             }));
+
+            if (detections.length) {
+              upsertImageFaces(sourceImage.id, detections).catch(() => {});
+            }
           } catch {
             detections = [];
           }
@@ -261,8 +307,19 @@ export default function Faces() {
 
         const normalizedClusters = clusterFaces(faceRecords);
 
+        try {
+          const peopleRes = await getFacePeople();
+          const backendClusters = mapPeopleToClusters(peopleRes.data.people || []);
+          if (backendClusters.length) {
+            setClusters(backendClusters);
+          } else {
+            setClusters(normalizedClusters);
+          }
+        } catch {
+          setClusters(normalizedClusters);
+        }
+
         setScanMeta({ cached: cachedCount, rescanned: rescannedCount });
-        setClusters(normalizedClusters);
 
         if (!normalizedClusters.length) {
           setStatusText('No detectable faces were found in the current image library.');
@@ -300,7 +357,7 @@ export default function Faces() {
   const decoratedClusters = useMemo(() => {
     return clusters.map((cluster, index) => ({
       ...cluster,
-      displayName: personNames[cluster.clusterKey] || `Person ${index + 1}`,
+      displayName: personNames[cluster.clusterKey] || cluster.displayName || `Person ${index + 1}`,
     }));
   }, [clusters, personNames]);
 
@@ -309,9 +366,18 @@ export default function Faces() {
     return `${progress.processed}/${progress.total} images scanned`;
   }, [progress]);
 
-  const applyPersonName = () => {
+  const applyPersonName = async () => {
     if (!selectedCluster) return;
     const cleaned = nameDraft.trim();
+
+    if (selectedCluster.personId) {
+      try {
+        await updateFacePerson(selectedCluster.personId, { displayName: cleaned || selectedCluster.displayName });
+      } catch {
+        // Keep local fallback name state if backend update fails.
+      }
+    }
+
     setPersonNames((previous) => ({
       ...previous,
       [selectedCluster.clusterKey]: cleaned || selectedCluster.displayName,
@@ -343,10 +409,10 @@ export default function Faces() {
                 ? progressLabel
                 : `${decoratedClusters.length} groups | ${scanMeta.cached} cached | ${scanMeta.rescanned} scanned`}
             </div>
-            <button className="btn btn-ghost faces-rescan" onClick={() => setRescanToken((value) => value + 1)} disabled={loading}>
+            <button className="btn btn-ghost faces-rescan" onClick={() => setRescanToken((value) => value + 1)} disabled={loading} aria-label="Refresh people list">
               <RefreshCcw size={14} className={loading ? 'spin' : ''} /> Refresh
             </button>
-            <button className="btn btn-secondary faces-rescan" onClick={startRescan} disabled={loading}>
+            <button className="btn btn-secondary faces-rescan" onClick={startRescan} disabled={loading} aria-label="Run full face rescan">
               <RefreshCcw size={14} className={loading ? 'spin' : ''} /> Full Rescan
             </button>
           </div>
@@ -408,7 +474,7 @@ export default function Faces() {
                   <h3>{selectedCluster.displayName}</h3>
                   <p>{selectedCluster.images.length} images with this person</p>
                 </div>
-                <button className="btn-icon btn-ghost" onClick={() => setSelectedCluster(null)}>
+                <button className="btn-icon btn-ghost" onClick={() => setSelectedCluster(null)} aria-label="Close person details">
                   <X size={18} />
                 </button>
               </div>
@@ -420,8 +486,9 @@ export default function Faces() {
                   value={nameDraft}
                   onChange={(event) => setNameDraft(event.target.value)}
                   placeholder="Name this person"
+                  aria-label="Person name"
                 />
-                <button className="btn btn-primary" onClick={applyPersonName}>Save Name</button>
+                <button className="btn btn-primary" onClick={applyPersonName} aria-label="Save person name">Save Name</button>
               </div>
 
               <div className="faces-modal-grid">
