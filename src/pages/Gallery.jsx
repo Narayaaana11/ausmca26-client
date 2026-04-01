@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, X, Search, Plus, Camera, Download } from 'lucide-react';
+import { Heart, MessageCircle, X, Search, Plus, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Lightbox from 'yet-another-react-lightbox';
+import Download from 'yet-another-react-lightbox/plugins/download';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import { getMemories, createMemory, likeMemory, resolveImageUrl } from '../services/api';
 import ImageUpload from '../components/ImageUpload';
 import './Gallery.css';
@@ -98,48 +101,6 @@ function UploadModal({ onClose, onSuccess }) {
   );
 }
 
-function PreviewModal({ memory, onClose }) {
-  if (!memory) return null;
-
-  const imageUrl = resolveImageUrl(memory.imageUrl);
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <motion.div
-        className="gallery-preview-modal"
-        onClick={(e) => e.stopPropagation()}
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-      >
-        <div className="gallery-preview-stage">
-          <div className="gallery-preview-controls">
-            <a
-              className="btn-icon gallery-preview-btn"
-              href={imageUrl}
-              download
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Download image"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Download size={18} />
-            </a>
-            <button className="btn-icon gallery-preview-btn" onClick={onClose} aria-label="Close preview">
-              <X size={18} />
-            </button>
-          </div>
-          <img
-            src={imageUrl}
-            alt={memory.title || 'Preview image'}
-            className="gallery-preview-image"
-          />
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
 function MemCard({ m, onLike, onPreview }) {
   return (
     <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="tech-card card-gallery">
@@ -148,7 +109,7 @@ function MemCard({ m, onLike, onPreview }) {
           src={resolveImageUrl(m.thumbnailUrl || m.imageUrl)}
           alt={m.title}
           loading="lazy"
-          onClick={() => onPreview(m)}
+          onClick={() => onPreview(m._id)}
           className="cg-clickable"
         />
         <div className="cg-overlay">
@@ -175,7 +136,7 @@ export default function Gallery() {
   const [filterYear, setFilterYear] = useState('All');
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
-  const [previewMemory, setPreviewMemory] = useState(null);
+  const [previewIndex, setPreviewIndex] = useState(-1);
 
   useEffect(() => {
     getMemories().then(r => { setMemories(r.data.memories); setLoading(false); }).catch(()=>setLoading(false));
@@ -193,6 +154,17 @@ export default function Gallery() {
     (filterYear==='All' || m.year===filterYear) &&
     (!search || m.title.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const slides = filtered.map((memory) => ({
+    src: resolveImageUrl(memory.imageUrl),
+    alt: memory.title || 'Preview image',
+    download: resolveImageUrl(memory.imageUrl),
+  }));
+
+  const openPreviewById = (id) => {
+    const index = filtered.findIndex((memory) => memory._id === id);
+    if (index >= 0) setPreviewIndex(index);
+  };
 
   return (
     <div className="page-wrap">
@@ -227,7 +199,7 @@ export default function Gallery() {
         ) : (
           <motion.div className="grid-gallery" layout>
             <AnimatePresence>
-              {filtered.map(m => <MemCard key={m._id} m={m} onLike={handleLike} onPreview={setPreviewMemory} />)}
+              {filtered.map(m => <MemCard key={m._id} m={m} onLike={handleLike} onPreview={openPreviewById} />)}
             </AnimatePresence>
           </motion.div>
         )}
@@ -235,8 +207,17 @@ export default function Gallery() {
 
       <AnimatePresence>
         {showUpload && <UploadModal onClose={()=>setShowUpload(false)} onSuccess={m=>setMemories(p=>[m,...p])} />}
-        {previewMemory && <PreviewModal memory={previewMemory} onClose={() => setPreviewMemory(null)} />}
       </AnimatePresence>
+
+      <Lightbox
+        open={previewIndex >= 0}
+        index={previewIndex}
+        close={() => setPreviewIndex(-1)}
+        slides={slides}
+        plugins={[Download, Zoom]}
+        carousel={{ finite: filtered.length <= 1 }}
+        controller={{ closeOnBackdropClick: true }}
+      />
     </div>
   );
 }

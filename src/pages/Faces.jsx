@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine, Download } from 'lucide-react';
+import { ScanFace, UserRound, X, Image as ImageIcon, RefreshCcw, PencilLine } from 'lucide-react';
+import Lightbox from 'yet-another-react-lightbox';
+import DownloadPlugin from 'yet-another-react-lightbox/plugins/download';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import { getImages, resolveImageUrl } from '../services/api';
 import './Faces.css';
 
@@ -148,7 +151,7 @@ export default function Faces() {
   const [scanMeta, setScanMeta] = useState({ cached: 0, rescanned: 0 });
   const [personNames, setPersonNames] = useState(() => readJsonStorage(FACE_NAMES_KEY, {}));
   const [selectedCluster, setSelectedCluster] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
   const [nameDraft, setNameDraft] = useState('');
 
   const runFaceScan = useCallback(async (forceRescan = false) => {
@@ -422,8 +425,8 @@ export default function Faces() {
               </div>
 
               <div className="faces-modal-grid">
-                {selectedCluster.images.map((image) => (
-                  <button key={image.id} className="faces-image-card" onClick={() => setSelectedImage(image)} type="button">
+                {selectedCluster.images.map((image, index) => (
+                  <button key={image.id} className="faces-image-card" onClick={() => setSelectedImageIndex(index)} type="button">
                     <img src={image.thumbUrl} alt={image.title} loading="lazy" />
                     <div className="faces-image-meta">
                       <ImageIcon size={14} />
@@ -437,38 +440,19 @@ export default function Faces() {
         ) : null}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {selectedImage ? (
-          <div className="modal-overlay" onClick={() => setSelectedImage(null)}>
-            <motion.div
-              className="faces-preview"
-              onClick={(event) => event.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-            >
-              <div className="faces-preview-stage">
-                <div className="faces-preview-controls">
-                  <a
-                    className="btn-icon faces-preview-btn"
-                    href={selectedImage.imageUrl}
-                    download
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Download image"
-                  >
-                    <Download size={18} />
-                  </a>
-                  <button className="btn-icon faces-preview-btn" onClick={() => setSelectedImage(null)} aria-label="Close preview">
-                    <X size={18} />
-                  </button>
-                </div>
-                <img src={selectedImage.imageUrl} alt={selectedImage.title} className="faces-preview-image" />
-              </div>
-            </motion.div>
-          </div>
-        ) : null}
-      </AnimatePresence>
+      <Lightbox
+        open={selectedImageIndex >= 0}
+        index={selectedImageIndex}
+        close={() => setSelectedImageIndex(-1)}
+        slides={(selectedCluster?.images || []).map((image) => ({
+          src: image.imageUrl,
+          alt: image.title || 'Matched image',
+          download: image.imageUrl,
+        }))}
+        plugins={[DownloadPlugin, Zoom]}
+        carousel={{ finite: (selectedCluster?.images || []).length <= 1 }}
+        controller={{ closeOnBackdropClick: true }}
+      />
     </div>
   );
 }
