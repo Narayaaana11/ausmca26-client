@@ -6,6 +6,7 @@ import Gallery from './pages/Gallery';
 import Yearbook from './pages/Yearbook';
 import Timeline from './pages/Timeline';
 import Wall from './pages/Wall';
+import Faces from './pages/Faces';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/yearbook" element={<Yearbook />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/wall"     element={<Wall />} />
+          <Route path="/faces"    element={<Faces />} />
           <Route path="*"         element={<Navigate to="/" replace />} />
         </Routes>
 

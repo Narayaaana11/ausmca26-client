@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Users, Calendar, MessageSquare, Menu, X } from 'lucide-react';
+import { Image as ImageIcon, Users, Calendar, MessageSquare, Menu, X, ScanFace } from 'lucide-react';
 import './Navbar.css';
 
 const LINKS = [
@@ -9,6 +9,7 @@ const LINKS = [
   { to: '/yearbook', label: 'Registry', icon: Users },
   { to: '/timeline', label: 'Timeline', icon: Calendar },
   { to: '/wall',     label: 'Wall',     icon: MessageSquare },
+  { to: '/faces',    label: 'Faces',    icon: ScanFace },
 ];
 
 export default function Navbar() {
