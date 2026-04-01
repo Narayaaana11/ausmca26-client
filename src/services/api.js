@@ -45,6 +45,10 @@ export const createMemory = (formData, config = {}) => API.post('/memories', for
   headers: { 'Content-Type': 'multipart/form-data' },
   ...config,
 });
+export const createMemoriesBulk = (formData, config = {}) => API.post('/memories/bulk', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+  ...config,
+});
 export const likeMemory = (id) => API.put(`/memories/${id}/like`);
 export const addMemoryComment = (id, text) => API.post(`/memories/${id}/comment`, { text });
 export const deleteMemory = (id) => API.delete(`/memories/${id}`);
